@@ -1,6 +1,6 @@
-# Getting Started with Create React App
+# Folder Tree Application with Checkboxes
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This project is built using [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
 
