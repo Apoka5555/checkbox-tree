@@ -1,15 +1,18 @@
 import { useEffect, useState } from "react";
-import "./App.css";
 import FolderItem from "./components/FolderItem/FolderItem";
 import { api } from "./api/api";
 import { FolderData } from "./types/Folder";
 import { getFoldersData } from "./utils/getFoldersData";
 import { buildTree } from "./utils/buildTree";
 import { isExpandedByDefault } from "./utils/isExpandedByDefault";
+import { useSetRecoilState } from "recoil";
+import { includeSubfolders } from "./stores/app.store";
+import "./App.css";
 
 function App() {
+  const setIncludeSubfolders = useSetRecoilState(includeSubfolders);
+
   const [foldersTree, setFoldersTree] = useState<Array<FolderData>>([]);
-  const [includeSubfolders, setIncludeSubfolders] = useState<boolean>(false);
 
   const getFolders = async () => {
     const folderStructure = await api.getFolderStructure();
@@ -40,7 +43,6 @@ function App() {
           id={folderData.id}
           name={folderData.name}
           children={folderData.children}
-          checkSubfolders={includeSubfolders}
           defaultExpanded={isExpandedByDefault(folderData.created)}
         />
       ))}

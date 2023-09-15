@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import classNames from "classnames";
 import { FolderData } from "../../types/Folder";
+import { isExpandedByDefault } from "../../utils/isExpandedByDefault";
+import { useRecoilValue } from "recoil";
+import { includeSubfolders } from "../../stores/app.store";
 import "./FolderItem.css";
 
 interface FolderProps {
@@ -12,7 +15,6 @@ interface FolderProps {
   paddingLeft?: number;
   onChange?: (value: boolean) => void;
   className?: string;
-  checkSubfolders?: boolean;
 }
 
 const CHILDREN_PADDING_LEFT = 20;
@@ -24,7 +26,6 @@ const FolderItem: React.FC<FolderProps> = ({
   onChange,
   defaultChecked,
   defaultExpanded = false,
-  checkSubfolders = false,
   paddingLeft = CHILDREN_PADDING_LEFT,
   className,
 }) => {
@@ -33,14 +34,16 @@ const FolderItem: React.FC<FolderProps> = ({
   const [isUndetermined, setIsUndetermined] = useState<boolean>(false);
   const [checkedChildrenCount, setCheckedChildrenCount] = useState<number>(0);
 
+  const checkSubfolders = useRecoilValue(includeSubfolders);
+
   const handleCheck = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.checked;
 
-    setIsChecked(value);
-
-    if (!value && checkSubfolders) {
-      setCheckedChildrenCount(0);
+    if (checkSubfolders) {
+      setCheckedChildrenCount(value ? children.length : 0);
     }
+
+    setIsChecked(value);
 
     if (onChange) {
       onChange(value);
@@ -53,6 +56,10 @@ const FolderItem: React.FC<FolderProps> = ({
         ? previousCheckedChildrenCount + 1
         : previousCheckedChildrenCount - 1
     );
+
+    if (onChange) {
+      onChange(value);
+    }
   };
 
   const handleExpandToggle = () => {
@@ -72,8 +79,12 @@ const FolderItem: React.FC<FolderProps> = ({
   useEffect(() => {
     if (defaultChecked !== undefined) {
       setIsChecked(defaultChecked);
+
+      if (checkSubfolders) {
+        setCheckedChildrenCount(defaultChecked ? children.length : 0);
+      }
     }
-  }, [defaultChecked]);
+  }, [checkSubfolders, children.length, defaultChecked]);
 
   return (
     <div className={classNames("folder", className)}>
@@ -116,7 +127,7 @@ const FolderItem: React.FC<FolderProps> = ({
               paddingLeft={paddingLeft + CHILDREN_PADDING_LEFT}
               onChange={handleChildCheck}
               defaultChecked={checkSubfolders ? isChecked : undefined}
-              checkSubfolders={checkSubfolders}
+              defaultExpanded={isExpandedByDefault(folderData.created)}
             />
           ))}
         </div>
