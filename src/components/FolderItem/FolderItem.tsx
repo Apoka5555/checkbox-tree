@@ -13,7 +13,7 @@ interface FolderProps {
   defaultChecked?: boolean;
   defaultExpanded?: boolean;
   paddingLeft?: number;
-  onChange?: (value: boolean) => void;
+  onChange?: (value: boolean, hasCheckedChildren: boolean) => void;
   className?: string;
 }
 
@@ -30,35 +30,58 @@ const FolderItem: React.FC<FolderProps> = ({
   className,
 }) => {
   const [expanded, setExpanded] = useState<boolean>(defaultExpanded);
-  const [isChecked, setIsChecked] = useState<boolean>(false);
+  const [isChecked, setIsChecked] = useState<boolean>(Boolean(defaultChecked));
   const [isUndetermined, setIsUndetermined] = useState<boolean>(false);
   const [checkedChildrenCount, setCheckedChildrenCount] = useState<number>(0);
+  const [childrenFolders, setChildrenFolders] =
+    useState<Array<FolderData>>(children);
 
   const checkSubfolders = useRecoilValue(includeSubfolders);
+
+  const updateChildrenFolders = (value: boolean) => {
+    setChildrenFolders((previousChildrenFolders) =>
+      previousChildrenFolders.map((folder: FolderData) => {
+        return {
+          ...folder,
+          checked: value,
+        };
+      })
+    );
+  };
 
   const handleCheck = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.checked;
 
+    let newCheckedChildrenCount = checkedChildrenCount;
+
     if (checkSubfolders) {
-      setCheckedChildrenCount(value ? children.length : 0);
+      newCheckedChildrenCount = value ? children.length : 0;
+      setCheckedChildrenCount(newCheckedChildrenCount);
+      updateChildrenFolders(value);
     }
 
     setIsChecked(value);
 
     if (onChange) {
-      onChange(value);
+      onChange(value, newCheckedChildrenCount > 0);
     }
   };
 
-  const handleChildCheck = (value: boolean) => {
-    setCheckedChildrenCount((previousCheckedChildrenCount) =>
-      value
-        ? previousCheckedChildrenCount + 1
-        : previousCheckedChildrenCount - 1
-    );
+  const handleChildCheck = (value: boolean, hasCheckedChildren: boolean) => {
+    const isUndeterminedChild = !value && hasCheckedChildren;
+
+    let newCheckedChildrenCount = checkedChildrenCount;
+
+    if (value) {
+      newCheckedChildrenCount++;
+    } else if (!isUndeterminedChild) {
+      newCheckedChildrenCount--;
+    }
+
+    setCheckedChildrenCount(newCheckedChildrenCount);
 
     if (onChange) {
-      onChange(value);
+      onChange(value, newCheckedChildrenCount > 0);
     }
   };
 
@@ -77,14 +100,14 @@ const FolderItem: React.FC<FolderProps> = ({
   }, [checkedChildrenCount, isChecked, isUndetermined]);
 
   useEffect(() => {
-    if (defaultChecked !== undefined) {
-      setIsChecked(defaultChecked);
-
-      if (checkSubfolders) {
-        setCheckedChildrenCount(defaultChecked ? children.length : 0);
-      }
+    if (defaultChecked === undefined) {
+      return;
     }
-  }, [checkSubfolders, children.length, defaultChecked]);
+
+    setIsChecked(defaultChecked);
+    updateChildrenFolders(defaultChecked);
+    setCheckedChildrenCount(defaultChecked ? children.length : 0);
+  }, [children.length, defaultChecked]);
 
   return (
     <div className={classNames("folder", className)}>
@@ -116,9 +139,9 @@ const FolderItem: React.FC<FolderProps> = ({
         )}
       </div>
 
-      {children.length > 0 && (
+      {childrenFolders.length > 0 && (
         <div className="folder__children" aria-expanded={expanded}>
-          {children.map((folderData) => (
+          {childrenFolders.map((folderData) => (
             <FolderItem
               key={folderData.id}
               id={folderData.id}
@@ -126,7 +149,7 @@ const FolderItem: React.FC<FolderProps> = ({
               children={folderData.children}
               paddingLeft={paddingLeft + CHILDREN_PADDING_LEFT}
               onChange={handleChildCheck}
-              defaultChecked={checkSubfolders ? isChecked : undefined}
+              defaultChecked={folderData.checked}
               defaultExpanded={isExpandedByDefault(folderData.created)}
             />
           ))}

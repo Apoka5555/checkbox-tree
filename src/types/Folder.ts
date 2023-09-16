@@ -4,6 +4,7 @@ export interface FolderData {
   parent: number | null;
   created: Date;
   children: Array<FolderData>;
+  checked?: boolean;
 }
 
 export interface Column {
