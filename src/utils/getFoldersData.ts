@@ -12,6 +12,7 @@ export const getFoldersData = (folderStructure: FolderStructure) => {
           name: item[1],
           parent: item[2],
           created: createdDate,
+          checked: false,
           children: [],
         });
       }
