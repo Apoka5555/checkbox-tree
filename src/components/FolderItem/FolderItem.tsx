@@ -57,8 +57,9 @@ const FolderItem: React.FC<FolderProps> = ({
     if (checkSubfolders) {
       newCheckedChildrenCount = value ? children.length : 0;
       setCheckedChildrenCount(newCheckedChildrenCount);
-      updateChildrenFolders(value);
     }
+
+    updateChildrenFolders(value);
 
     setIsChecked(value);
 
@@ -104,10 +105,13 @@ const FolderItem: React.FC<FolderProps> = ({
       return;
     }
 
-    setIsChecked(defaultChecked);
     updateChildrenFolders(defaultChecked);
-    setCheckedChildrenCount(defaultChecked ? children.length : 0);
-  }, [children.length, defaultChecked]);
+
+    if (checkSubfolders) {
+      setIsChecked(defaultChecked);
+      setCheckedChildrenCount(defaultChecked ? children.length : 0);
+    }
+  }, [checkSubfolders, children.length, defaultChecked]);
 
   return (
     <div className={classNames("folder", className)}>
