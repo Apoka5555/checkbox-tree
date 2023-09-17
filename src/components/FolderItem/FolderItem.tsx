@@ -1,4 +1,4 @@
-import React, { useState, memo, useCallback } from "react";
+import React, { useState, memo } from "react";
 import classNames from "classnames";
 import { FolderData } from "../../types/Folder";
 import { isExpandedByDefault } from "../../utils/isExpandedByDefault";
@@ -8,7 +8,7 @@ interface FolderProps {
   id?: number;
   name: string;
   children?: Array<FolderData>;
-  defaultChecked: boolean;
+  checked: boolean;
   isUndetermined?: boolean;
   defaultExpanded?: boolean;
   paddingLeft?: number;
@@ -18,35 +18,30 @@ interface FolderProps {
 
 const CHILDREN_PADDING_LEFT = 20;
 
-const FolderItem: React.FC<FolderProps> = ({
+function FolderItem({
   id = 0,
   name,
   children = [],
   onChange,
-  defaultChecked,
+  checked,
   isUndetermined,
   defaultExpanded = false,
   paddingLeft = CHILDREN_PADDING_LEFT,
   className,
-}) => {
+}: FolderProps) {
   const [expanded, setExpanded] = useState<boolean>(defaultExpanded);
 
-  const handleCheck = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const value = event.target.checked;
+  const handleCheck = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.checked;
 
-      if (onChange) {
-        onChange(value, id);
-      }
-    },
-    [id, onChange]
-  );
+    if (onChange) {
+      onChange(value, id);
+    }
+  };
 
-  const handleExpandToggle = useCallback(() => {
+  const handleExpandToggle = () => {
     setExpanded(!expanded);
-  }, [expanded]);
-
-  console.log("render", name, id);
+  };
 
   return (
     <div className={classNames("folder", className)}>
@@ -56,7 +51,7 @@ const FolderItem: React.FC<FolderProps> = ({
             id={id.toString()}
             className="checkbox__input"
             type="checkbox"
-            checked={defaultChecked}
+            checked={checked}
             onChange={handleCheck}
           />
           <div
@@ -88,7 +83,7 @@ const FolderItem: React.FC<FolderProps> = ({
               children={folderData.children}
               paddingLeft={paddingLeft + CHILDREN_PADDING_LEFT}
               onChange={onChange}
-              defaultChecked={folderData.checked}
+              checked={folderData.checked}
               defaultExpanded={isExpandedByDefault(folderData.created)}
             />
           ))}
@@ -96,5 +91,6 @@ const FolderItem: React.FC<FolderProps> = ({
       )}
     </div>
   );
-};
+}
+
 export default memo(FolderItem);
